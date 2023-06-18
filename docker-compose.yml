@@ -1,0 +1,38 @@
+version: '3.5'
+services:
+  mysql:
+    container_name: mysql
+    image: mysql:8.0.27
+    volumes:
+      - mysqldata:/var/lib/mysql
+      # - ./sql:e-com-sql
+    networks:
+      - node-net
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+    cap_add:
+      - SYS_NICE
+  app:
+    container_name: e-commerce
+    image: node:18-alpine
+    volumes:
+      - ./:/var/www
+    ports:
+      - ${HOST_PORT:-3000}:3000
+    working_dir: /var/www
+    command: sh setup.sh
+    env_file:
+      - .env
+    networks:
+      - node-net
+    depends_on:
+      - mysql
+networks:
+  node-net:
+    driver: bridge
+volumes:
+  mysqldata:
+    driver: local
